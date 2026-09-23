@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'action_failure_message.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/chat_provider.dart';
+import '../../providers/chat_visual_settings_provider.dart';
 import '../../providers/hidden_rooms_provider.dart';
 import '../../src/rust/api/matrix.dart';
 import '../../theme/neu_colors.dart';
@@ -173,9 +174,17 @@ class _ChatListItemState extends ConsumerState<ChatListItem> {
         padding: EdgeInsets.symmetric(horizontal: 8, vertical: dense ? 8 : 10),
         decoration: ShapeDecoration(
           color: fillColor,
-          shape: RoundedSuperellipseBorder(
-            borderRadius: BorderRadius.circular(NeuRadius.content),
-          ),
+          shape:
+              (ChatVisualSettingsScope.maybeOf(
+                    context,
+                  )?.superellipseBorderEnabled ??
+                  true)
+              ? RoundedSuperellipseBorder(
+                  borderRadius: BorderRadius.circular(NeuRadius.content),
+                )
+              : RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(NeuRadius.content),
+                ),
         ),
         child: Row(
           children: [
@@ -391,9 +400,9 @@ class _ChatListItemState extends ConsumerState<ChatListItem> {
                 label: '隐藏聊天',
                 onTap: () async {
                   Navigator.of(sheetContext).pop();
-                  await ref
-                      .read(hiddenRoomsProvider.notifier)
-                      .hideRooms([room.id]);
+                  await ref.read(hiddenRoomsProvider.notifier).hideRooms([
+                    room.id,
+                  ]);
                   if (context.mounted) neuToast(context, '已隐藏聊天');
                 },
               ),
